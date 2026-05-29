@@ -175,19 +175,34 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs([
 # TAB 1: Distribusi & Overview
 # ──────────────────────────────────────────────────────────────────────────────
 with tab1:
-
     st.markdown(
         '<div class="section-header">Distribusi Gaya Belajar & Kecepatan Belajar</div>',
         unsafe_allow_html=True
     )
 
+    # ── BUSINESS QUESTIONS ────────────────────────────────────────────────
+    st.markdown(
+        '<div class="section-header">❓ Business Questions</div>',
+        unsafe_allow_html=True
+    )
+
+    st.markdown("""
+    <div class="insight-box">
+
+    <b>1.</b> Sejauh mana profil belajar siswa saat ini terdistribusi secara merata di dalam sistem?<br><br>
+
+    <b>2.</b> Apakah sistem pengujian mampu menangkap variasi gaya belajar secara objektif untuk mendukung personalisasi?<br><br>
+
+    <b>3.</b> Faktor perilaku apa yang memiliki pengaruh paling kuat terhadap performa akademik siswa?<br><br>
+
+    <b>4.</b> Bagaimana cara sistem mengelompokkan kecepatan belajar siswa untuk meningkatkan efisiensi kurikulum?
+
+    </div>
+    """, unsafe_allow_html=True)
+
     col_a, col_b = st.columns(2)
 
-    # =========================================================================
-    # PIE CHART LEARNING STYLE
-    # =========================================================================
     with col_a:
-
         st.markdown("**Proporsi Learning Style (VAK)**")
 
         fig, ax = plt.subplots(figsize=(5, 4))
@@ -199,18 +214,13 @@ with tab1:
             .fillna(0)
         )
 
-        # hapus nilai 0 agar pie chart tidak error
         counts = counts[counts > 0]
 
-        wedge_props = dict(
-            edgecolor='white',
-            linewidth=2.5
-        )
+        wedge_props = dict(edgecolor='white', linewidth=2.5)
 
         if len(counts) > 0:
-
             ax.pie(
-                counts.values,
+                counts,
                 labels=counts.index,
                 autopct='%1.1f%%',
                 colors=[PALETTE_VAK[x] for x in counts.index],
@@ -218,9 +228,7 @@ with tab1:
                 wedgeprops=wedge_props,
                 textprops={'fontsize': 11}
             )
-
         else:
-
             ax.text(
                 0.5,
                 0.5,
@@ -240,11 +248,7 @@ with tab1:
         st.pyplot(fig)
         plt.close()
 
-    # =========================================================================
-    # BAR CHART
-    # =========================================================================
     with col_b:
-
         st.markdown("**Jumlah Siswa per Kategori**")
 
         fig, axes = plt.subplots(1, 2, figsize=(7, 4))
@@ -263,27 +267,13 @@ with tab1:
 
         cnt_ls = cnt_ls[cnt_ls > 0]
 
-        if len(cnt_ls) > 0:
-
-            bars = axes[0].bar(
-                cnt_ls.index,
-                cnt_ls.values,
-                color=[PALETTE_VAK[ls] for ls in cnt_ls.index],
-                edgecolor='white',
-                linewidth=1.5
-            )
-
-            for bar in bars:
-
-                axes[0].text(
-                    bar.get_x() + bar.get_width()/2,
-                    bar.get_height() + 15,
-                    f'{int(bar.get_height()):,}',
-                    ha='center',
-                    va='bottom',
-                    fontsize=9,
-                    fontweight='bold'
-                )
+        bars = axes[0].bar(
+            cnt_ls.index,
+            cnt_ls.values,
+            color=[PALETTE_VAK[ls] for ls in cnt_ls.index],
+            edgecolor='white',
+            linewidth=1.5
+        )
 
         axes[0].set_title(
             'Per Learning Style',
@@ -291,6 +281,17 @@ with tab1:
         )
 
         axes[0].set_ylabel('Jumlah Siswa')
+
+        for bar in bars:
+            axes[0].text(
+                bar.get_x() + bar.get_width()/2,
+                bar.get_height() + 15,
+                f'{int(bar.get_height()):,}',
+                ha='center',
+                va='bottom',
+                fontsize=9,
+                fontweight='bold'
+            )
 
         # =========================
         # BAR LEARNING PACE
@@ -304,27 +305,13 @@ with tab1:
 
         cnt_pace = cnt_pace[cnt_pace > 0]
 
-        if len(cnt_pace) > 0:
-
-            bars2 = axes[1].bar(
-                cnt_pace.index,
-                cnt_pace.values,
-                color=[PALETTE_PACE[p] for p in cnt_pace.index],
-                edgecolor='white',
-                linewidth=1.5
-            )
-
-            for bar in bars2:
-
-                axes[1].text(
-                    bar.get_x() + bar.get_width()/2,
-                    bar.get_height() + 15,
-                    f'{int(bar.get_height()):,}',
-                    ha='center',
-                    va='bottom',
-                    fontsize=9,
-                    fontweight='bold'
-                )
+        bars2 = axes[1].bar(
+            cnt_pace.index,
+            cnt_pace.values,
+            color=[PALETTE_PACE[p] for p in cnt_pace.index],
+            edgecolor='white',
+            linewidth=1.5
+        )
 
         axes[1].set_title(
             'Per Learning Pace',
@@ -332,6 +319,17 @@ with tab1:
         )
 
         axes[1].set_ylabel('Jumlah Siswa')
+
+        for bar in bars2:
+            axes[1].text(
+                bar.get_x() + bar.get_width()/2,
+                bar.get_height() + 15,
+                f'{int(bar.get_height()):,}',
+                ha='center',
+                va='bottom',
+                fontsize=9,
+                fontweight='bold'
+            )
 
         plt.tight_layout()
         st.pyplot(fig)
@@ -861,6 +859,27 @@ else:
     | 3 | Learning Style × Learning Pace | Chi-Square + Cramér's V | Justifikasi profil ganda |
     """)
 
+# ──────────────────────────────────────────────────────────────────────────────
+# BUSINESS IMPACT
+# ──────────────────────────────────────────────────────────────────────────────
+st.divider()
+
+st.markdown(
+    '<div class="section-header">🎯 Business Impact</div>',
+    unsafe_allow_html=True
+)
+
+st.markdown("""
+<div class="insight-box">
+
+✅ Personalize learning recommendations<br>
+✅ Improve teaching strategies<br>
+✅ Identify students needing intervention<br>
+✅ Support adaptive learning systems<br>
+✅ Assist educational decision-making using data-driven insights
+
+</div>
+""", unsafe_allow_html=True)
 
 # ── Footer ──────────────────────────────────────────────────────────────────
 st.divider()
