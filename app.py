@@ -738,35 +738,65 @@ with tab5:
     st.markdown('<div class="section-header">Statistical A/B Testing & Validasi Model</div>', unsafe_allow_html=True)
     st.info("Semua uji statistik menggunakan α = 0.05 (tingkat kepercayaan 95%)")
 
-    # ── Experiment 1: Fast vs Slow ──────────────────────────────────────────
-    st.markdown("### Experiment 1 — Fast vs Slow: AcademicScore")
-    st.markdown("**H₀:** Tidak ada perbedaan AcademicScore antara Fast dan Slow Learner | **H₁:** Fast > Slow")
+# ── Experiment 1: Learning Pace Comparison ──────────────────────────
+st.markdown("### Experiment 1 — Perbandingan AcademicScore antar Learning Pace")
 
-    group_fast = df_filtered[df_filtered['LearningPace_Label'] == 'Fast']['AcademicScore'].dropna()
-    group_slow = df_filtered[df_filtered['LearningPace_Label'] == 'Slow']['AcademicScore'].dropna()
+available_pace = [
+    p for p in PACE_ORDER
+    if len(df_filtered[df_filtered['LearningPace_Label'] == p]) > 0
+]
 
-    if len(group_fast) > 0 and len(group_slow) > 0:
-        t_stat, p_ttest = stats.ttest_ind(group_fast, group_slow, alternative='greater')
-        u_stat, p_mwu   = mannwhitneyu(group_fast, group_slow, alternative='greater')
-        pooled_std      = np.sqrt((group_fast.std()**2 + group_slow.std()**2) / 2)
-        cohens_d        = (group_fast.mean() - group_slow.mean()) / pooled_std if pooled_std > 0 else 0
+if len(available_pace) >= 2:
 
-        col_e1a, col_e1b, col_e1c = st.columns(3)
-        col_e1a.metric("T-statistic", f"{t_stat:.4f}", f"p = {p_ttest:.6f}")
-        col_e1b.metric("Mann-Whitney U", f"{u_stat:.0f}", f"p = {p_mwu:.6f}")
-        col_e1c.metric("Cohen's d", f"{cohens_d:.4f}",
-                       "Besar" if abs(cohens_d) >= 0.5 else "Sedang" if abs(cohens_d) >= 0.2 else "Kecil")
+    pace_1 = available_pace[0]
+    pace_2 = available_pace[1]
 
-        result1 = p_ttest < ALPHA or p_mwu < ALPHA
-        if result1:
-            st.success(f"✅ H₀ **DITOLAK** — Fast Learner memiliki AcademicScore signifikan lebih tinggi (p < {ALPHA}). Segmentasi K-Means VALID.")
-        else:
-            st.warning(f"⚠️ H₀ **GAGAL DITOLAK** — Perbedaan tidak signifikan secara statistik (p ≥ {ALPHA}).")
+    st.markdown(
+        f"**H₀:** Tidak ada perbedaan AcademicScore antara {pace_1} dan {pace_2} "
+        f"| **H₁:** Ada perbedaan signifikan"
+    )
+
+    group_1 = df_filtered[
+        df_filtered['LearningPace_Label'] == pace_1
+    ]['AcademicScore'].dropna()
+
+    group_2 = df_filtered[
+        df_filtered['LearningPace_Label'] == pace_2
+    ]['AcademicScore'].dropna()
+
+    t_stat, p_ttest = stats.ttest_ind(group_1, group_2)
+
+    pooled_std = np.sqrt(
+        (group_1.std()**2 + group_2.std()**2) / 2
+    )
+
+    cohens_d = (
+        (group_1.mean() - group_2.mean()) / pooled_std
+        if pooled_std > 0 else 0
+    )
+
+    col_e1a, col_e1b, col_e1c = st.columns(3)
+
+    col_e1a.metric("T-statistic", f"{t_stat:.4f}")
+    col_e1b.metric("p-value", f"{p_ttest:.6f}")
+    col_e1c.metric("Cohen's d", f"{cohens_d:.4f}")
+
+    if p_ttest < ALPHA:
+        st.success(
+            f"✅ H₀ DITOLAK — Ada perbedaan signifikan "
+            f"antara {pace_1} dan {pace_2}."
+        )
     else:
-        st.warning("Filter aktif tidak memiliki cukup data untuk Experiment 1.")
+        st.info(
+            f"ℹ️ H₀ GAGAL DITOLAK — Tidak ada perbedaan signifikan "
+            f"antara {pace_1} dan {pace_2}."
+        )
 
-    st.divider()
-
+else:
+    st.warning(
+        "⚠️ Minimal pilih 2 kategori Learning Pace untuk menjalankan Experiment 1."
+    )
+    
     # ── Experiment 2: ANOVA Indikator VAK ──────────────────────────────────
     st.markdown("### Experiment 2 — Validasi Indikator VAK (One-Way ANOVA)")
     st.markdown("**H₀:** Rata-rata indikator sama di semua gaya belajar | **H₁:** Ada perbedaan signifikan")
