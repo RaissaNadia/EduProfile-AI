@@ -152,6 +152,13 @@ The dashboard validates findings using:
 
 ---
 
+## ❓Business Question
+*  Sejauh mana profil belajar siswa saat ini terdistribusi secara merata di dalam sistem?
+*  Apakah sistem pengujian kita mampu menangkap variasi gaya belajar secara objektif untuk mendukukng personalisasi?
+*  Faktor perilaku apa yang memiliki pengaruh paling kuat terhadap performa akademik siswa?
+*  Bagaimana cara sistem mengelompokkan kecepatan belajar siswa untuk meningkatkan efisiensi kurikulum?
+---
+
 ## 🎯 Business Impact
 
 EduProfile AI can help:
@@ -190,7 +197,8 @@ Data Science & Dashboard Development
 
 ### Charlene Manuella Angkadjaja
 
-Data Analysis & Statistical Validation
+Data Analysis & Statistical Validation 
+**Repository Utama (Data Processing):** [charleneangkadjaja/capstone-project](https://github.com/charleneangkadjaja/capstone-project)
 
 ---
 
