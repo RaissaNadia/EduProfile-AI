@@ -195,11 +195,13 @@ EduProfile AI can help:
 
 Data Science & Dashboard Development
 
+* Repository Result : (https://github.com/RaissaNadia/EduProfile-AI)
+
 ### Charlene Manuella Angkadjaja
 
 Data Analysis & Statistical Validation 
 
-**Repository Utama (Data Processing):** [charleneangkadjaja/capstone-project](https://github.com/charleneangkadjaja/capstone-project)
+*Repository Utama (Data Processing): (https://github.com/charleneangkadjaja/capstone-project)
 
 ---
 
