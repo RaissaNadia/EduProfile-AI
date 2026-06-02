@@ -148,9 +148,9 @@ col1, col2, col3, col4, col5 = st.columns(5)
 with col1:
     st.metric("Total Siswa", f"{len(df_filtered):,}", f"{len(df_filtered)-len(df):,}" if len(df_filtered) != len(df) else "Semua Data")
 with col2:
-    st.metric("Rata-rata Skor", f"{df_filtered['AcademicScore'].mean():.2f}", "Skala 0–1")
+    st.metric("Rata-rata Skor", f"{df_filtered['AcademicScore'].mean():.2f}", "Skala 1–5")
 with col3:
-    st.metric("Rata-rata Kehadiran", f"{df_filtered['AttendanceRate'].mean():.2f}", "Skala 0–1")
+    st.metric("Rata-rata Kehadiran", f"{df_filtered['AttendanceRate'].mean():.2f}", "Skala 1–5")
 with col4:
     dominant_style = df_filtered['LearningStyle'].value_counts().idxmax()
     pct_dominant   = df_filtered['LearningStyle'].value_counts(normalize=True).max() * 100
@@ -162,14 +162,14 @@ with col5:
 # ══════════════════════════════════════════════════════════════════════════════
 # TABS UTAMA
 # ══════════════════════════════════════════════════════════════════════════════
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "📊 Distribusi & Overview",
     "🔬 Indikator VAK",
     "🚀 Learning Pace",
     "📐 Korelasi & Fitur",
-    "🧪 A/B Testing",
-    "❓ Business Questions"
+    "🧪 A/B Testing"
 ])
+
 
 # ──────────────────────────────────────────────────────────────────────────────
 # TAB 1: Distribusi & Overview
@@ -179,6 +179,26 @@ with tab1:
         '<div class="section-header">Distribusi Gaya Belajar & Kecepatan Belajar</div>',
         unsafe_allow_html=True
     )
+
+    # ── BUSINESS QUESTIONS ────────────────────────────────────────────────
+    st.markdown(
+        '<div class="section-header">❓ Business Questions</div>',
+        unsafe_allow_html=True
+    )
+
+    st.markdown("""
+    <div class="insight-box">
+
+    <b>1.</b> Sejauh mana profil belajar siswa saat ini terdistribusi secara merata di dalam sistem?<br><br>
+
+    <b>2.</b> Apakah sistem pengujian mampu menangkap variasi gaya belajar secara objektif untuk mendukung personalisasi?<br><br>
+
+    <b>3.</b> Faktor perilaku apa yang memiliki pengaruh paling kuat terhadap performa akademik siswa?<br><br>
+
+    <b>4.</b> Bagaimana cara sistem mengelompokkan kecepatan belajar siswa untuk meningkatkan efisiensi kurikulum?
+
+    </div>
+    """, unsafe_allow_html=True)
 
     col_a, col_b = st.columns(2)
 
@@ -265,7 +285,7 @@ with tab1:
         for bar in bars:
             axes[0].text(
                 bar.get_x() + bar.get_width()/2,
-                bar.get_height() + (cnt_ls.max() * 0.05),
+                bar.get_height() + 15,
                 f'{int(bar.get_height()):,}',
                 ha='center',
                 va='bottom',
@@ -303,7 +323,7 @@ with tab1:
         for bar in bars2:
             axes[1].text(
                 bar.get_x() + bar.get_width()/2,
-                bar.get_height() + (cnt_pace.max() * 0.05),
+                bar.get_height() + 15,
                 f'{int(bar.get_height()):,}',
                 ha='center',
                 va='bottom',
@@ -406,6 +426,7 @@ with tab1:
         )
 
     else:
+
         st.warning("Tidak ada data untuk ditampilkan.")
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -424,7 +445,7 @@ with tab2:
         axes[i].set_title(f'{ind.replace("Indikator_", "")} per Learning Style',
                           fontweight='bold', fontsize=12)
         axes[i].set_xlabel('Learning Style')
-        axes[i].set_ylabel('Nilai Indikator (0–1)')
+        axes[i].set_ylabel('Nilai Indikator (1–5)')
     fig.suptitle('Violin Plot: Distribusi Indikator VAK', fontsize=14, fontweight='bold', y=1.02)
     plt.tight_layout()
     st.pyplot(fig)
@@ -444,9 +465,8 @@ with tab2:
         fig, ax = plt.subplots(figsize=(6, 5), subplot_kw=dict(polar=True))
         for ls, color in PALETTE_VAK.items():
             vals = df_filtered[df_filtered['LearningStyle'] == ls][feat_radar].mean().tolist()
-            
-            # Gunakan nilai langsung karena sudah skala 0-1
-            vals_norm = vals 
+            # Normalize to 0-1 for radar
+            vals_norm = [(v - 1) / 4 for v in vals]
             vals_norm += vals_norm[:1]
             ax.plot(angles, vals_norm, 'o-', linewidth=2, color=color, label=ls)
             ax.fill(angles, vals_norm, alpha=0.15, color=color)
@@ -454,8 +474,8 @@ with tab2:
         ax.set_xticks(angles[:-1])
         ax.set_xticklabels(categories, fontsize=9)
         ax.set_ylim(0, 1)
-        ax.set_yticks([0.33, 0.66, 1.0])
-        ax.set_yticklabels(['Rendah', 'Sedang', 'Tinggi'], fontsize=7)
+        ax.set_yticks([0.25, 0.5, 0.75])
+        ax.set_yticklabels(['1.25–2', '2–3', '3–4'], fontsize=7)
         ax.set_title('Profil Rata-rata per Gaya Belajar\n(Skala Ternormalisasi 0–1)',
                      fontweight='bold', pad=15)
         ax.legend(loc='upper right', bbox_to_anchor=(1.3, 1.1))
@@ -486,7 +506,7 @@ with tab2:
             patch.set_facecolor(color)
             patch.set_alpha(0.75)
         axes[i].set_title(ind.replace("Indikator_", "Indikator "), fontweight='bold')
-        axes[i].set_ylabel('Nilai (0–1)')
+        axes[i].set_ylabel('Nilai (1–5)')
     plt.tight_layout()
     st.pyplot(fig)
     plt.close()
@@ -510,7 +530,7 @@ with tab3:
             patch.set_alpha(0.8)
         ax.set_title('AcademicScore per Learning Pace', fontweight='bold')
         ax.set_xlabel('Learning Pace')
-        ax.set_ylabel('Academic Score (0–1)')
+        ax.set_ylabel('Academic Score (1–5)')
         plt.tight_layout()
         st.pyplot(fig)
         plt.close()
@@ -713,362 +733,131 @@ with tab4:
 # TAB 5: A/B Testing
 # ──────────────────────────────────────────────────────────────────────────────
 with tab5:
-
-    st.markdown(
-        '<div class="section-header">Statistical A/B Testing & Validasi Model</div>',
-        unsafe_allow_html=True
-    )
-
+    st.markdown('<div class="section-header">Statistical A/B Testing & Validasi Model</div>', unsafe_allow_html=True)
     st.info("Semua uji statistik menggunakan α = 0.05 (tingkat kepercayaan 95%)")
 
-    # =========================================================================
-    # EXPERIMENT 1
-    # =========================================================================
-    st.markdown("## Experiment 1 — Perbandingan AcademicScore antar Learning Pace")
+# ── Experiment 1: Learning Pace Comparison ──────────────────────────
+st.markdown("### Experiment 1 — Perbandingan AcademicScore antar Learning Pace")
 
-    available_pace = [
-        p for p in PACE_ORDER
-        if len(df_filtered[df_filtered['LearningPace_Label'] == p]) > 0
-    ]
+available_pace = [
+    p for p in PACE_ORDER
+    if len(df_filtered[df_filtered['LearningPace_Label'] == p]) > 0
+]
 
-    if len(available_pace) >= 2:
+if len(available_pace) >= 2:
 
-        pace_1 = available_pace[0]
-        pace_2 = available_pace[1]
+    pace_1 = available_pace[0]
+    pace_2 = available_pace[1]
 
-        st.markdown(
-            f"**H₀:** Tidak ada perbedaan AcademicScore antara {pace_1} dan {pace_2} "
-            f"| **H₁:** Ada perbedaan signifikan"
+    st.markdown(
+        f"**H₀:** Tidak ada perbedaan AcademicScore antara {pace_1} dan {pace_2} "
+        f"| **H₁:** Ada perbedaan signifikan"
+    )
+
+    group_1 = df_filtered[
+        df_filtered['LearningPace_Label'] == pace_1
+    ]['AcademicScore'].dropna()
+
+    group_2 = df_filtered[
+        df_filtered['LearningPace_Label'] == pace_2
+    ]['AcademicScore'].dropna()
+
+    t_stat, p_ttest = stats.ttest_ind(group_1, group_2)
+
+    pooled_std = np.sqrt(
+        (group_1.std()**2 + group_2.std()**2) / 2
+    )
+
+    cohens_d = (
+        (group_1.mean() - group_2.mean()) / pooled_std
+        if pooled_std > 0 else 0
+    )
+
+    col_e1a, col_e1b, col_e1c = st.columns(3)
+
+    col_e1a.metric("T-statistic", f"{t_stat:.4f}")
+    col_e1b.metric("p-value", f"{p_ttest:.6f}")
+    col_e1c.metric("Cohen's d", f"{cohens_d:.4f}")
+
+    if p_ttest < ALPHA:
+        st.success(
+            f"✅ H₀ DITOLAK — Ada perbedaan signifikan "
+            f"antara {pace_1} dan {pace_2}."
         )
-
-        group_1 = df_filtered[
-            df_filtered['LearningPace_Label'] == pace_1
-        ]['AcademicScore'].dropna()
-
-        group_2 = df_filtered[
-            df_filtered['LearningPace_Label'] == pace_2
-        ]['AcademicScore'].dropna()
-
-        t_stat, p_ttest = stats.ttest_ind(group_1, group_2)
-
-        pooled_std = np.sqrt(
-            (group_1.std()**2 + group_2.std()**2) / 2
-        )
-
-        cohens_d = (
-            (group_1.mean() - group_2.mean()) / pooled_std
-            if pooled_std > 0 else 0
-        )
-
-        col1, col2, col3 = st.columns(3)
-
-        col1.metric("T-statistic", f"{t_stat:.4f}")
-        col2.metric("p-value", f"{p_ttest:.6f}")
-        col3.metric("Cohen's d", f"{cohens_d:.4f}")
-
-        if p_ttest < ALPHA:
-            st.success(
-                f"✅ H₀ DITOLAK — Ada perbedaan signifikan "
-                f"antara {pace_1} dan {pace_2}."
-            )
-        else:
-            st.info(
-                f"ℹ️ H₀ GAGAL DITOLAK — Tidak ada perbedaan signifikan "
-                f"antara {pace_1} dan {pace_2}."
-            )
-
     else:
-        st.warning(
-            "⚠️ Minimal pilih 2 kategori Learning Pace untuk menjalankan Experiment 1."
+        st.info(
+            f"ℹ️ H₀ GAGAL DITOLAK — Tidak ada perbedaan signifikan "
+            f"antara {pace_1} dan {pace_2}."
         )
+
+else:
+    st.warning(
+        "⚠️ Minimal pilih 2 kategori Learning Pace untuk menjalankan Experiment 1."
+    )
+    
+    # ── Experiment 2: ANOVA Indikator VAK ──────────────────────────────────
+    st.markdown("### Experiment 2 — Validasi Indikator VAK (One-Way ANOVA)")
+    st.markdown("**H₀:** Rata-rata indikator sama di semua gaya belajar | **H₁:** Ada perbedaan signifikan")
+
+    anova_results = []
+    for ind in ['Indikator_Visual', 'Indikator_Auditory', 'Indikator_Kinestetik']:
+        groups = [df_filtered[df_filtered['LearningStyle'] == ls][ind].dropna().values for ls in LS_ORDER]
+        if all(len(g) > 1 for g in groups):
+            f_stat, p_anova   = stats.f_oneway(*groups)
+            h_stat, p_kruskal_val = kruskal(*groups)
+            anova_results.append({
+                'Indikator': ind,
+                'F-statistic': round(f_stat, 4),
+                'p-value (ANOVA)': round(p_anova, 6),
+                'H-statistic': round(h_stat, 4),
+                'p-value (Kruskal)': round(p_kruskal_val, 6),
+                'Signifikan?': '✅ Ya' if p_anova < ALPHA else '❌ Tidak'
+            })
+
+    if anova_results:
+        df_anova = pd.DataFrame(anova_results)
+        st.dataframe(df_anova, use_container_width=True)
+        all_sig = all('✅' in r['Signifikan?'] for r in anova_results)
+        if all_sig:
+            st.success("✅ Semua indikator VAK terbukti signifikan membedakan gaya belajar — Feature Engineering VALID secara statistik.")
+        else:
+            st.warning("⚠️ Beberapa indikator kurang signifikan dalam kondisi filter ini.")
 
     st.divider()
 
-    # =========================================================================
-    # EXPERIMENT 2
-    # =========================================================================
-    st.markdown("## Experiment 2 — Validasi Indikator VAK (One-Way ANOVA)")
+    # ── Experiment 3: Chi-Square ────────────────────────────────────────────
+    st.markdown("### Experiment 3 — Chi-Square: Learning Style × Learning Pace")
+    st.markdown("**H₀:** Learning Style dan Learning Pace independen | **H₁:** Ada hubungan signifikan")
 
-    st.markdown(
-        "**H₀:** Rata-rata indikator sama di semua gaya belajar "
-        "| **H₁:** Ada perbedaan signifikan"
-    )
-
-    available_styles = [
-        s for s in LS_ORDER
-        if len(df_filtered[df_filtered['LearningStyle'] == s]) > 0
-    ]
-
-    if len(available_styles) >= 2:
-
-        anova_results = []
-
-        for ind in [
-            'Indikator_Visual',
-            'Indikator_Auditory',
-            'Indikator_Kinestetik'
-        ]:
-
-            groups = [
-                df_filtered[df_filtered['LearningStyle'] == ls][ind].dropna()
-                for ls in available_styles
-            ]
-
-            if all(len(g) > 1 for g in groups):
-
-                f_stat, p_anova = stats.f_oneway(*groups)
-
-                anova_results.append({
-                    'Indikator': ind,
-                    'F-statistic': round(f_stat, 4),
-                    'p-value': round(p_anova, 6),
-                    'Keputusan':
-                        '✅ Tolak H₀'
-                        if p_anova < ALPHA
-                        else '❌ Gagal Tolak H₀'
-                })
-
-        if len(anova_results) > 0:
-
-            st.dataframe(
-                pd.DataFrame(anova_results),
-                use_container_width=True
-            )
-
-            if all(r['p-value'] < ALPHA for r in anova_results):
-                st.success(
-                    "✅ Semua indikator berbeda signifikan antar learning style."
-                )
-            else:
-                st.warning(
-                    "⚠️ Tidak semua indikator signifikan pada filter aktif."
-                )
-
-        else:
-            st.warning("Data tidak cukup untuk menjalankan ANOVA.")
-
-    else:
-        st.warning(
-            "⚠️ Minimal pilih 2 kategori Learning Style untuk Experiment 2."
-        )
-
-    st.divider()
-
-    # =========================================================================
-    # EXPERIMENT 3
-    # =========================================================================
-    st.markdown("## Experiment 3 — Chi-Square: Learning Style × Learning Pace")
-
-    st.markdown(
-        "**H₀:** Learning Style dan Learning Pace independen "
-        "| **H₁:** Ada hubungan signifikan"
-    )
-
-    contingency = pd.crosstab(
-        df_filtered['LearningStyle'],
-        df_filtered['LearningPace_Label']
-    )
-
-    if contingency.shape[0] >= 2 and contingency.shape[1] >= 2:
-
+    contingency = pd.crosstab(df_filtered['LearningStyle'], df_filtered['LearningPace_Label'])
+    if contingency.shape[0] > 1 and contingency.shape[1] > 1:
         chi2, p_chi2, dof, _ = chi2_contingency(contingency)
+        cramers_v = np.sqrt(chi2 / (len(df_filtered) * (min(contingency.shape) - 1)))
 
-        cramers_v = np.sqrt(
-            chi2 / (
-                len(df_filtered)
-                * (min(contingency.shape) - 1)
-            )
-        )
+        col_chi1, col_chi2, col_chi3 = st.columns(3)
+        col_chi1.metric("Chi-Square (χ²)", f"{chi2:.4f}")
+        col_chi2.metric("p-value", f"{p_chi2:.6f}", f"df = {dof}")
+        col_chi3.metric("Cramér's V", f"{cramers_v:.4f}",
+                        "Kuat (≥0.3)" if cramers_v >= 0.3 else "Sedang" if cramers_v >= 0.1 else "Lemah")
 
-        c1, c2, c3 = st.columns(3)
-
-        c1.metric("Chi-Square", f"{chi2:.4f}")
-        c2.metric("p-value", f"{p_chi2:.6f}")
-        c3.metric("Cramér's V", f"{cramers_v:.4f}")
-
-        st.dataframe(contingency)
+        st.markdown("**Contingency Table:**")
+        st.dataframe(contingency, use_container_width=False)
 
         if p_chi2 < ALPHA:
-            st.success(
-                "✅ H₀ DITOLAK — Ada hubungan signifikan antara "
-                "Learning Style dan Learning Pace."
-            )
+            st.success(f"✅ H₀ **DITOLAK** — Ada hubungan SIGNIFIKAN antara Learning Style dan Learning Pace. Profil ganda EduProfile AI terjustifikasi.")
         else:
-            st.info(
-                "ℹ️ H₀ GAGAL DITOLAK — Tidak ditemukan hubungan signifikan."
-            )
+            st.info(f"ℹ️ H₀ **GAGAL DITOLAK** — Learning Style dan Learning Pace bersifat independen. Keduanya perlu diprediksi secara terpisah.")
 
-    else:
-        st.warning(
-            "⚠️ Minimal diperlukan 2 kategori Learning Style dan "
-            "2 kategori Learning Pace."
-        )
-
+    # ── Ringkasan ───────────────────────────────────────────────────────────
     st.divider()
-
-# ── TAB 6: Business Questions ──────────────────────────────────────────
-with tab6:
-    st.markdown('<div class="section-header">❓ Jawaban Business Questions</div>', unsafe_allow_html=True)
-    st.markdown("Semua jawaban dihitung secara dinamis dari data yang difilter di sidebar.")
-
-    # ── BQ1 ──────────────────────────────────────────────────────────────
-    st.markdown("### BQ1 — Bagaimana distribusi learning style siswa?")
-    
-    counts_bq1  = df_filtered['LearningStyle'].value_counts().reindex(LS_ORDER).fillna(0)
-    chi2_bq1, p_bq1 = stats.chisquare(counts_bq1.values) if counts_bq1.sum() > 0 else (0, 1)
-    status_bq1  = "MERATA ✅" if p_bq1 > 0.05 else "TIDAK MERATA ⚠️"
-    
-    col_bq1a, col_bq1b = st.columns([2, 1])
-    with col_bq1a:
-        fig, ax = plt.subplots(figsize=(6, 3))
-        counts_plot = counts_bq1[counts_bq1 > 0]
-        ax.pie(counts_plot, labels=counts_plot.index, autopct='%1.1f%%',
-               colors=[PALETTE_VAK[x] for x in counts_plot.index],
-               startangle=90, wedgeprops=dict(edgecolor='white', linewidth=2))
-        ax.set_title('Distribusi Learning Style', fontweight='bold')
-        plt.tight_layout(); st.pyplot(fig); plt.close()
-    with col_bq1b:
-        st.dataframe(counts_bq1.rename('Jumlah Siswa').astype(int), use_container_width=True)
-        st.markdown(f"""<div class="insight-box">
-        <b>Jawaban BQ1:</b> Distribusi learning style <b>{status_bq1}</b><br>
-        Chi-Square p = {p_bq1:.4f} {'(p > 0.05 → seimbang)' if p_bq1 > 0.05 else '(p < 0.05 → tidak seimbang)'}<br>
-        <i>Dataset {'ideal' if p_bq1 > 0.05 else 'perlu penanganan'} untuk modeling klasifikasi.</i>
-        </div>""", unsafe_allow_html=True)
-    st.divider()
-
-    # ── BQ2 ──────────────────────────────────────────────────────────────
-    st.markdown("### BQ2 — Faktor apa yang paling memengaruhi learning style?")
-    
-    feature_cols_bq2 = ['AcademicScore', 'AttendanceRate', 'StudentPerformance',
-                        'DeviceUsage', 'Indikator_Visual', 'Indikator_Auditory', 'Indikator_Kinestetik']
-    feature_cols_bq2 = [f for f in feature_cols_bq2 if f in df_filtered.columns]
-    
-    active_ls_bq2 = [ls for ls in LS_ORDER if ls in df_filtered['LearningStyle'].unique()]
-    
-    group_mean_bq2 = df_filtered.groupby('LearningStyle')[feature_cols_bq2].mean().round(3)
-    
-    col_bq2a, col_bq2b = st.columns([2, 1])
-    with col_bq2a:
-        fig, ax = plt.subplots(figsize=(8, 4))
-        sns.heatmap(group_mean_bq2, annot=True, fmt='.2f', cmap='coolwarm',
-                    ax=ax, linewidths=0.5, cbar_kws={'shrink': 0.8}, annot_kws={'size': 9})
-        ax.set_title('Rata-rata Fitur per Learning Style', fontweight='bold')
-        ax.tick_params(axis='x', rotation=45, labelsize=8)
-        plt.tight_layout(); st.pyplot(fig); plt.close()
-    with col_bq2b:
-        if 'LearningStyle_Encoded' in df_filtered.columns and len(active_ls_bq2) >= 2:
-            corr_bq2 = df_filtered[feature_cols_bq2 + ['LearningStyle_Encoded']].corr()
-            top_feat  = corr_bq2['LearningStyle_Encoded'].drop('LearningStyle_Encoded').abs().idxmax()
-            top_corr  = corr_bq2['LearningStyle_Encoded'].drop('LearningStyle_Encoded').abs().max()
-            st.markdown(f"""<div class="insight-box">
-            <b>Jawaban BQ2:</b><br>
-            Faktor paling berpengaruh:<br>
-            <b>{top_feat}</b> (|r| = {top_corr:.3f})<br><br>
-            Indikator Visual & Auditory paling diskriminatif — feature engineering valid.
-            </div>""", unsafe_allow_html=True)
-        st.dataframe(group_mean_bq2, use_container_width=True)
-    st.divider()
-
-    # ── BQ3 ──────────────────────────────────────────────────────────────
-    st.markdown("### BQ3 — Hubungan learning pace dengan performa akademik?")
-    
-    active_pace_bq3 = [p for p in PACE_ORDER if p in df_filtered['LearningPace_Label'].unique()]
-    pace_stats_bq3  = df_filtered.groupby('LearningPace_Label')['AcademicScore'].agg(['mean','std']).round(3)
-    
-    col_bq3a, col_bq3b = st.columns([2, 1])
-    with col_bq3a:
-        fig, ax = plt.subplots(figsize=(6, 3.5))
-        if len(active_pace_bq3) > 0:
-            data_bq3 = [df_filtered[df_filtered['LearningPace_Label']==p]['AcademicScore'].values
-                        for p in active_pace_bq3]
-            bp = ax.boxplot(data_bq3, labels=active_pace_bq3, patch_artist=True)
-            for patch, pace in zip(bp['boxes'], active_pace_bq3):
-                patch.set_facecolor(PALETTE_PACE[pace]); patch.set_alpha(0.8)
-        ax.set_title('Academic Score per Learning Pace', fontweight='bold')
-        ax.set_ylabel('Academic Score (0–1)')
-        plt.tight_layout(); st.pyplot(fig); plt.close()
-    with col_bq3b:
-        if len(pace_stats_bq3) > 0:
-            best_pace = pace_stats_bq3['mean'].idxmax()
-            worst_pace = pace_stats_bq3['mean'].idxmin()
-            st.markdown(f"""<div class="insight-box">
-            <b>Jawaban BQ3:</b><br>
-            <b>{best_pace}</b> punya skor tertinggi ({pace_stats_bq3.loc[best_pace,'mean']:.3f})<br>
-            <b>{worst_pace}</b> punya skor terendah ({pace_stats_bq3.loc[worst_pace,'mean']:.3f})<br><br>
-            Learning pace berkorelasi dengan performa — segmentasi K-Means bermakna.
-            </div>""", unsafe_allow_html=True)
-        st.dataframe(pace_stats_bq3.rename(columns={'mean':'Rata-rata','std':'Std'}), use_container_width=True)
-    st.divider()
-
-    # ── BQ4 ──────────────────────────────────────────────────────────────
-    st.markdown("### BQ4 — Apakah indikator VAK mampu membedakan gaya belajar?")
-    
-    indikators_bq4 = ['Indikator_Visual', 'Indikator_Auditory', 'Indikator_Kinestetik']
-    
-    fig, axes = plt.subplots(1, 3, figsize=(15, 4))
-    for i, ind in enumerate(indikators_bq4):
-        if len(active_ls_bq2) >= 2:
-            sns.violinplot(data=df_filtered, x='LearningStyle', y=ind,
-                           order=active_ls_bq2, palette=PALETTE_VAK, ax=axes[i], inner='quart')
-        axes[i].set_title(ind.replace('Indikator_',''), fontweight='bold')
-        axes[i].set_xlabel(''); axes[i].set_ylabel('Nilai (0–1)')
-    plt.tight_layout(); st.pyplot(fig); plt.close()
-    
-    # Hitung ANOVA untuk semua indikator
-    anova_bq4 = []
-    for ind in indikators_bq4:
-        groups = [df_filtered[df_filtered['LearningStyle']==ls][ind].dropna().values
-                  for ls in active_ls_bq2 if len(df_filtered[df_filtered['LearningStyle']==ls]) > 1]
-        if len(groups) >= 2:
-            f_val, p_val = stats.f_oneway(*groups)
-            anova_bq4.append({'Indikator': ind, 'F-stat': round(f_val,3),
-                               'p-value': round(p_val,6), 'Signifikan': '✅' if p_val < 0.05 else '❌'})
-    
-    if anova_bq4:
-        st.dataframe(pd.DataFrame(anova_bq4), use_container_width=True)
-        all_sig = all(r['p-value'] < 0.05 for r in anova_bq4)
-        if all_sig:
-            st.success("✅ Jawaban BQ4: YA — semua indikator VAK signifikan membedakan gaya belajar (ANOVA p < 0.05). Feature engineering VALID.")
-        else:
-            st.warning("⚠️ Sebagian indikator belum signifikan pada filter ini.")
-    st.divider()
-
-    # ── BQ5 ──────────────────────────────────────────────────────────────
-    st.markdown("### BQ5 — Bagaimana pola hubungan antar fitur numerik?")
-    
-    fig, ax = plt.subplots(figsize=(9, 6))
-    corr_bq5 = df_filtered[feature_cols_bq2].corr()
-    mask_bq5 = np.triu(np.ones_like(corr_bq5, dtype=bool))
-    sns.heatmap(corr_bq5, mask=mask_bq5, annot=True, fmt='.2f', cmap='coolwarm',
-                center=0, ax=ax, square=True, linewidths=0.5,
-                cbar_kws={'shrink': 0.8}, annot_kws={'size': 9})
-    ax.set_title('Correlation Heatmap Antar Fitur', fontweight='bold')
-    ax.tick_params(axis='x', rotation=45, labelsize=8)
-    plt.tight_layout(); st.pyplot(fig); plt.close()
-    
-    max_corr = corr_bq5.where(~mask_bq5 & (corr_bq5 < 1.0)).abs().stack()
-    if len(max_corr) > 0:
-        max_pair = max_corr.idxmax()
-        max_val  = max_corr.max()
-        st.markdown(f"""<div class="insight-box">
-        <b>Jawaban BQ5:</b> Tidak ada multikolinearitas ekstrem (tidak ada |r| > 0.9).<br>
-        Korelasi tertinggi: <b>{max_pair[0]}</b> × <b>{max_pair[1]}</b> = {max_val:.3f}<br>
-        Semua fitur aman digunakan bersamaan untuk model machine learning.
-        </div>""", unsafe_allow_html=True)
-
-    # =========================================================================
-    # EXECUTIVE SUMMARY
-    # =========================================================================
-    st.markdown("## 📋 Ringkasan Eksekutif")
-
+    st.markdown("### 📋 Ringkasan Eksekutif A/B Testing")
     st.markdown("""
-    | Eksperimen | Metode | Tujuan |
-    |---|---|---|
-    | Experiment 1 | Independent t-test | Membandingkan AcademicScore antar Learning Pace |
-    | Experiment 2 | One-Way ANOVA | Validasi indikator VAK |
-    | Experiment 3 | Chi-Square Test | Hubungan Learning Style × Learning Pace |
+    | # | Eksperimen | Metode | Implikasi |
+    |---|------------|--------|-----------|
+    | 1 | Fast vs Slow AcademicScore | t-test + Mann-Whitney | Validasi K-Means Learning Pace |
+    | 2 | Indikator VAK vs Learning Style | ANOVA + Kruskal-Wallis | Validasi Feature Engineering |
+    | 3 | Learning Style × Learning Pace | Chi-Square + Cramér's V | Justifikasi profil ganda |
     """)
-
 
 # ──────────────────────────────────────────────────────────────────────────────
 # BUSINESS IMPACT
