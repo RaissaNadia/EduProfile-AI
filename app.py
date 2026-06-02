@@ -148,9 +148,9 @@ col1, col2, col3, col4, col5 = st.columns(5)
 with col1:
     st.metric("Total Siswa", f"{len(df_filtered):,}", f"{len(df_filtered)-len(df):,}" if len(df_filtered) != len(df) else "Semua Data")
 with col2:
-    st.metric("Rata-rata Skor", f"{df_filtered['AcademicScore'].mean():.2f}", "Skala 1–5")
+    st.metric("Rata-rata Skor", f"{df_filtered['AcademicScore'].mean():.2f}", "Skala 0–1")
 with col3:
-    st.metric("Rata-rata Kehadiran", f"{df_filtered['AttendanceRate'].mean():.2f}", "Skala 1–5")
+    st.metric("Rata-rata Kehadiran", f"{df_filtered['AttendanceRate'].mean():.2f}", "Skala 0–1")
 with col4:
     dominant_style = df_filtered['LearningStyle'].value_counts().idxmax()
     pct_dominant   = df_filtered['LearningStyle'].value_counts(normalize=True).max() * 100
@@ -265,7 +265,7 @@ with tab1:
         for bar in bars:
             axes[0].text(
                 bar.get_x() + bar.get_width()/2,
-                bar.get_height() + 15,
+                bar.get_height() + (cnt_ls.max() * 0.05),
                 f'{int(bar.get_height()):,}',
                 ha='center',
                 va='bottom',
@@ -303,7 +303,7 @@ with tab1:
         for bar in bars2:
             axes[1].text(
                 bar.get_x() + bar.get_width()/2,
-                bar.get_height() + 15,
+                bar.get_height() + (cnt_pace.max() * 0.05),
                 f'{int(bar.get_height()):,}',
                 ha='center',
                 va='bottom',
@@ -424,7 +424,7 @@ with tab2:
         axes[i].set_title(f'{ind.replace("Indikator_", "")} per Learning Style',
                           fontweight='bold', fontsize=12)
         axes[i].set_xlabel('Learning Style')
-        axes[i].set_ylabel('Nilai Indikator (1–5)')
+        axes[i].set_ylabel('Nilai Indikator (0–1)')
     fig.suptitle('Violin Plot: Distribusi Indikator VAK', fontsize=14, fontweight='bold', y=1.02)
     plt.tight_layout()
     st.pyplot(fig)
@@ -444,8 +444,9 @@ with tab2:
         fig, ax = plt.subplots(figsize=(6, 5), subplot_kw=dict(polar=True))
         for ls, color in PALETTE_VAK.items():
             vals = df_filtered[df_filtered['LearningStyle'] == ls][feat_radar].mean().tolist()
-            # Normalize to 0-1 for radar
-            vals_norm = [(v - 1) / 4 for v in vals]
+            
+            # Gunakan nilai langsung karena sudah skala 0-1
+            vals_norm = vals 
             vals_norm += vals_norm[:1]
             ax.plot(angles, vals_norm, 'o-', linewidth=2, color=color, label=ls)
             ax.fill(angles, vals_norm, alpha=0.15, color=color)
@@ -453,8 +454,8 @@ with tab2:
         ax.set_xticks(angles[:-1])
         ax.set_xticklabels(categories, fontsize=9)
         ax.set_ylim(0, 1)
-        ax.set_yticks([0.25, 0.5, 0.75])
-        ax.set_yticklabels(['1.25–2', '2–3', '3–4'], fontsize=7)
+        ax.set_yticks([0.33, 0.66, 1.0])
+        ax.set_yticklabels(['Rendah', 'Sedang', 'Tinggi'], fontsize=7)
         ax.set_title('Profil Rata-rata per Gaya Belajar\n(Skala Ternormalisasi 0–1)',
                      fontweight='bold', pad=15)
         ax.legend(loc='upper right', bbox_to_anchor=(1.3, 1.1))
@@ -485,7 +486,7 @@ with tab2:
             patch.set_facecolor(color)
             patch.set_alpha(0.75)
         axes[i].set_title(ind.replace("Indikator_", "Indikator "), fontweight='bold')
-        axes[i].set_ylabel('Nilai (1–5)')
+        axes[i].set_ylabel('Nilai (0–1)')
     plt.tight_layout()
     st.pyplot(fig)
     plt.close()
@@ -509,7 +510,7 @@ with tab3:
             patch.set_alpha(0.8)
         ax.set_title('AcademicScore per Learning Pace', fontweight='bold')
         ax.set_xlabel('Learning Pace')
-        ax.set_ylabel('Academic Score (1–5)')
+        ax.set_ylabel('Academic Score (0–1)')
         plt.tight_layout()
         st.pyplot(fig)
         plt.close()
@@ -984,7 +985,7 @@ with tab6:
             for patch, pace in zip(bp['boxes'], active_pace_bq3):
                 patch.set_facecolor(PALETTE_PACE[pace]); patch.set_alpha(0.8)
         ax.set_title('Academic Score per Learning Pace', fontweight='bold')
-        ax.set_ylabel('Academic Score (1–5)')
+        ax.set_ylabel('Academic Score (0–1)')
         plt.tight_layout(); st.pyplot(fig); plt.close()
     with col_bq3b:
         if len(pace_stats_bq3) > 0:
@@ -1010,7 +1011,7 @@ with tab6:
             sns.violinplot(data=df_filtered, x='LearningStyle', y=ind,
                            order=active_ls_bq2, palette=PALETTE_VAK, ax=axes[i], inner='quart')
         axes[i].set_title(ind.replace('Indikator_',''), fontweight='bold')
-        axes[i].set_xlabel(''); axes[i].set_ylabel('Nilai (1–5)')
+        axes[i].set_xlabel(''); axes[i].set_ylabel('Nilai (0–1)')
     plt.tight_layout(); st.pyplot(fig); plt.close()
     
     # Hitung ANOVA untuk semua indikator
