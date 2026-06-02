@@ -406,7 +406,6 @@ with tab1:
         )
 
     else:
-
         st.warning("Tidak ada data untuk ditampilkan.")
 
 # ──────────────────────────────────────────────────────────────────────────────
