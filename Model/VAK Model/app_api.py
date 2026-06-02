@@ -7,6 +7,7 @@ import tensorflow as tf
 import tf_keras as keras
 from tf_keras.models import load_model
 from tf_keras.layers import Layer
+from sklearn.preprocessing import MinMaxScaler
 
 import torch
 import numpy as np
@@ -14,7 +15,7 @@ from transformers import AutoTokenizer, BertModel
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import List, Dict
 
 # PATCH: tf_keras menggunakan tf.io.gfile.join yang menghasilkan backslash (\) di Windows.
@@ -63,6 +64,13 @@ class CustomDense(Layer):
             "activation": keras.activations.serialize(self.activation)
         })
         return config
+
+scaler = MinMaxScaler()
+# Fit the scaler using the training data min and max bounds:
+# Order: [EduTech, DeviceUsage, Resources, Discussions, CourseParticipation, EmotionEngagement, PhysicalActivity, Extracurricular]
+min_vals = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0013462709565636999, 6.0, 0.0]
+max_vals = [1.0, 29.0, 2.0, 1.0, 49.0, 0.9976228222513854, 4997.0, 1.0]
+scaler.fit(np.array([min_vals, max_vals]))
 
 # ----------------- LOAD MODELS -----------------
 
@@ -122,9 +130,19 @@ class VAKInput(BaseModel):
         ..., 
         min_length=8, 
         max_length=8,
-        description="8 Nilai indikator perilaku (0-1). Urutan: [EduTech, DeviceUsage, Resources, Discussions, CourseParticipation, EmotionEngagement, PhysicalActivity, Extracurricular]",
-        json_schema_extra={"example": [0.8, 0.7, 0.9, 0.4, 0.5, 0.6, 0.3, 0.2]}
+        description="8 Nilai indikator perilaku (raw). Urutan: [EduTech, DeviceUsage, Resources, Discussions, CourseParticipation, EmotionEngagement, PhysicalActivity, Extracurricular]",
+        json_schema_extra={"example": [0.8, 7.0, 1.0, 1.0, 25.0, 0.5, 1000.0, 0.0]}
     )
+
+    @field_validator('habit_features')
+    @classmethod
+    def normalize_habit_features(cls, v: List[float]) -> List[float]:
+        # Normalisasi input habit menggunakan MinMaxScaler yang sudah di-fit
+        v_arr = np.array(v, dtype=np.float32).reshape(1, -1)
+        scaled_arr = scaler.transform(v_arr)[0]
+        # Clip untuk memastikan nilai tetap berada di rentang [0.0, 1.0]
+        scaled_arr = np.clip(scaled_arr, 0.0, 1.0)
+        return scaled_arr.tolist()
 
 class VAKOutput(BaseModel):
     predicted_style: str = Field(..., description="Gaya belajar yang diprediksi (Visual, Auditory, atau Kinesthetic)")
