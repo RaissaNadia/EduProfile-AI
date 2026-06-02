@@ -155,7 +155,12 @@ df_pace_scaled = scaler_pace.fit_transform(df_combined[pace_features])
 # Latih K-Means untuk membentuk 3 kelompok kecepatan belajar (Slow, Medium, Fast)
 kmeans_pace = KMeans(n_clusters=3, random_state=42, n_init=10)
 df_combined['LearningPace_Cluster'] = kmeans_pace.fit_predict(df_pace_scaled)
-print("✅ Fitur 'LearningPace_Cluster' berhasil dibuat menggunakan K-Means!")
+
+# Urutkan cluster agar 0=Slow, 1=Medium, 2=Fast secara konsisten berdasarkan rata-rata AcademicScore dari yang terendah ke tertinggi
+cluster_means = df_combined.groupby('LearningPace_Cluster')['AcademicScore'].mean().sort_values().index
+cluster_mapping = {cluster_means[0]: 0, cluster_means[1]: 1, cluster_means[2]: 2}
+df_combined['LearningPace_Cluster'] = df_combined['LearningPace_Cluster'].map(cluster_mapping)
+print("✅ Fitur 'LearningPace_Cluster' berhasil dibuat dan diurutkan secara konsisten!")
 
 
 """### Cleaning Dataset NLP VAK (`dataset.csv`)"""
