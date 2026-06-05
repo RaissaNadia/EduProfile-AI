@@ -9,7 +9,7 @@ This project was developed for **Coding Camp 2026 powered by DBS Foundation** by
 
 ---
 Laporan Komperhensif Link Drive:
-https://drive.google.com/file/d/1U5koF2SiqelCAozfM8tZFfGlX1vm4lib/view?usp=sharing
+https://l1nk.dev/laporankomperhensifds
 ---
 
 ## 🚀 Live Demo
